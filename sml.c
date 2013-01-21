@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MEMSIZE 100
 #define READ 10
@@ -17,26 +19,52 @@
 void displayGreeting();
 void executeProgram(int[]);
 
-int main() {
+int main(int argc, char *argv[]) {
     int memory[MEMSIZE] = {0}, currentLocation = 0, currentWord = 0;
 
-    displayGreeting();
+    /* if no filename passed, run interactive prompt */
+    if (argc <= 1) {
+        displayGreeting();
 
-    while (1) {
-        printf("%02d ? ", currentLocation);
-        scanf("%d", &currentWord);
-        getchar();
+        while (1) {
+            printf("%02d ? ", currentLocation);
+            scanf("%d", &currentWord);
+            getchar();
 
-        if (currentWord == -99999) {
-            printf("*** Program loading completed ***\n");
-            printf("*** Program execution begins ***\n");
-            executeProgram(memory);
+            if (currentWord == -99999) {
+                printf("*** Program loading completed ***\n");
+                printf("*** Program execution begins ***\n");
+                executeProgram(memory);
+                return 0;
+            } else {
+                memory[currentLocation] = currentWord;
+            }
+
+            currentLocation++;
+        }
+    } else {
+        FILE *sourceFile = fopen(argv[1], "r");
+        if (sourceFile == NULL) {
+            printf("Invalid source file\n");
             return 0;
         } else {
-            memory[currentLocation] = currentWord;
-        }
+            char line[150];
 
-        currentLocation++;
+            while (!feof(sourceFile)) {
+                if ( fgets(line, 150, sourceFile) != NULL) {
+                    if (currentWord = atoi(line)) {
+                        memory[currentLocation] = currentWord;
+                    } else{
+                        printf("Invalid command: %s\n", line);
+                        exit(0);
+                    }
+                }
+                currentLocation++;
+            }
+
+            executeProgram(memory);
+            return 0;
+        }
     }
 }
 
@@ -64,11 +92,14 @@ void executeProgram(int memory[]) {
 
         operationCode = instructionRegister / 100;
         operand = instructionRegister % 100;
+
+        #ifdef DEBUG
         printf("Opcode: %d, operand: %d\n", operationCode, operand);
+        #endif
         
         switch (operationCode) {
             case READ:
-                printf("? ");
+                printf("SML Prompt > ");
                 scanf("%d", &memory[operand]);
                 break;
             case WRITE:
@@ -108,8 +139,7 @@ void executeProgram(int memory[]) {
                     continue;
                 }
             case HALT:
-                printf("*** Simpletron execution terminated. ***\n");
-                return;
+                exit(0);
         }
         instructionCounter++;
     }
